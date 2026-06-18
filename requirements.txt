@@ -1,6 +1,6 @@
 # LLM Providers
 groq
-google-generativeai
+google-genai
 openai
 anthropic
 
