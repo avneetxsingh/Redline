@@ -1,0 +1,11 @@
+# LLM Providers
+groq
+google-generativeai
+openai
+anthropic
+
+# Async HTTP (for running multiple model calls simultaneously)
+aiohttp
+
+# Environment variables
+python-dotenv
