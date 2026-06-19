@@ -9,3 +9,8 @@ aiohttp
 
 # Environment variables
 python-dotenv
+
+# Dashboard backend
+fastapi
+uvicorn[standard]
+websockets

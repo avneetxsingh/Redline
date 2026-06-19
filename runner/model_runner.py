@@ -1,6 +1,7 @@
 import os
 import sys
 import asyncio
+from typing import Callable, Awaitable, Any
 from groq import Groq
 from google import genai
 from google.genai import types
@@ -118,7 +119,8 @@ async def probe_models(
     victim_system_prompt: str,
     initial_attack: str,
     failure_category: str,
-    max_attempts: int = MAX_ATTEMPTS
+    max_attempts: int = MAX_ATTEMPTS,
+    on_event: Callable[[dict], Awaitable[Any]] | None = None,
 ) -> dict:
     """
     Multi-turn iterative probing:
@@ -148,6 +150,14 @@ async def probe_models(
         # Add the attacker's next message to each pending model's conversation
         for model in pending:
             conversations[model].append({"role": "user", "content": next_messages[model]})
+            if on_event:
+                await on_event({
+                    "type": "attempt",
+                    "category": failure_category,
+                    "model": model,
+                    "attempt": attempt,
+                    "attacker_msg": next_messages[model],
+                })
 
         # Fire all pending models concurrently
         tasks = [_call_model(m, victim_system_prompt, conversations[m]) for m in pending]
@@ -165,6 +175,16 @@ async def probe_models(
                     "conversation": conversations[model],
                     "reason": str(response)
                 }
+                if on_event:
+                    await on_event({
+                        "type": "response",
+                        "category": failure_category,
+                        "model": model,
+                        "attempt": attempt,
+                        "model_response": str(response),
+                        "verdict": "ERROR",
+                        "reason": str(response),
+                    })
                 pending.remove(model)
                 continue
 
@@ -184,6 +204,17 @@ async def probe_models(
                 "conversation": conversations[model],
                 "reason": reason,
             }
+
+            if on_event:
+                await on_event({
+                    "type": "response",
+                    "category": failure_category,
+                    "model": model,
+                    "attempt": attempt,
+                    "model_response": response,
+                    "verdict": verdict,
+                    "reason": reason,
+                })
 
             if verdict != "PASSED":
                 pending.remove(model)  # model broke — stop attacking it
