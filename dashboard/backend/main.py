@@ -88,7 +88,7 @@ async def run_probes(websocket: WebSocket):
         try:
             results = await probe_models(
                 victim_system_prompt=system_prompt,
-                initial_attack=attacks[category],
+                kill_chain=attacks[category],
                 failure_category=category,
                 on_event=on_event,
             )

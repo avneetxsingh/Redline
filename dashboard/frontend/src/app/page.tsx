@@ -14,8 +14,10 @@ const CATEGORIES = [
 type GenerateResult = {
   use_case: string
   system_prompt: string
-  attacks: Record<string, string>
+  attacks: Record<string, string[]>
 }
+
+const STEP_LABELS = ['Setup', 'Pivot', 'Strike']
 
 export default function SetupPage() {
   const router = useRouter()
@@ -24,7 +26,7 @@ export default function SetupPage() {
   const [generating, setGenerating]     = useState(false)
   const [generated, setGenerated]       = useState<GenerateResult | null>(null)
   const [systemPrompt, setSystemPrompt] = useState('')
-  const [attacks, setAttacks]           = useState<Record<string, string>>({})
+  const [attacks, setAttacks]           = useState<Record<string, string[]>>({})
   const [error, setError]               = useState<string | null>(null)
 
   async function handleGenerate() {
@@ -65,7 +67,7 @@ export default function SetupPage() {
         <h1 className="text-2xl font-semibold">Setup</h1>
         <p className="text-zinc-400 text-sm">
           Describe the AI assistant you want to attack. The generator will produce a realistic
-          victim system prompt and five opening attack messages — one per failure category.
+          victim system prompt and a 3-step kill chain per failure category.
         </p>
 
         <div className="flex gap-3">
@@ -110,26 +112,39 @@ export default function SetupPage() {
             />
           </section>
 
-          <section className="flex flex-col gap-4">
-            <h2 className="text-lg font-medium">Opening Attack Messages</h2>
-            <p className="text-zinc-500 text-xs">
-              These are the first messages the attacker sends. The runner will adapt follow-ups
-              per model automatically.
-            </p>
+          <section className="flex flex-col gap-6">
+            <div>
+              <h2 className="text-lg font-medium">Attack Kill Chains</h2>
+              <p className="text-zinc-500 text-xs mt-1">
+                Each category has a 3-step scripted sequence. Attempts 4–5 switch to adaptive
+                escalation per model.
+              </p>
+            </div>
 
             {CATEGORIES.map(({ key, label }) => (
-              <div key={key} className="flex flex-col gap-1.5">
-                <label className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+              <div key={key} className="flex flex-col gap-2">
+                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
                   {label}
-                </label>
-                <textarea
-                  value={attacks[key] ?? ''}
-                  onChange={e => setAttacks(prev => ({ ...prev, [key]: e.target.value }))}
-                  rows={3}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-md px-4 py-2.5
-                             text-sm font-mono leading-relaxed focus:outline-none focus:border-red-500
-                             resize-y"
-                />
+                </span>
+                {STEP_LABELS.map((stepLabel, i) => (
+                  <div key={i} className="flex flex-col gap-1">
+                    <span className="text-xs text-zinc-600">
+                      Step {i + 1} — {stepLabel}
+                    </span>
+                    <textarea
+                      value={attacks[key]?.[i] ?? ''}
+                      onChange={e => setAttacks(prev => {
+                        const steps = [...(prev[key] ?? ['', '', ''])]
+                        steps[i] = e.target.value
+                        return { ...prev, [key]: steps }
+                      })}
+                      rows={2}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-md px-4 py-2.5
+                                 text-sm font-mono leading-relaxed focus:outline-none focus:border-red-500
+                                 resize-y"
+                    />
+                  </div>
+                ))}
               </div>
             ))}
           </section>

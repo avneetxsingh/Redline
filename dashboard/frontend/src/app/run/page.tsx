@@ -25,6 +25,7 @@ type Stream = Record<string, Turn[]>
 
 const VERDICT_COLORS: Record<string, string> = {
   PASSED:       'text-green-400',
+  PARTIAL:      'text-blue-400',
   JAILBROKEN:   'text-red-400',
   HALLUCINATED: 'text-yellow-400',
   OVER_REFUSED: 'text-orange-400',
