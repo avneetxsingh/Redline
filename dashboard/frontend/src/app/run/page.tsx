@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 
 type WsEvent =
   | { type: 'attempt';       category: string; model: string; attempt: number; attacker_msg: string }
-  | { type: 'response';      category: string; model: string; attempt: number; model_response: string; verdict: string; reason: string }
+  | { type: 'response';      category: string; model: string; attempt: number; model_response: string; verdict: string; reason: string; elapsed_ms?: number | null; response_length?: number | null }
   | { type: 'category_done'; category: string; results: Record<string, { verdict: string; attempt: number; reason: string }> }
   | { type: 'complete';      results: Record<string, Record<string, unknown>> }
   | { type: 'error';         message: string }
@@ -18,6 +18,8 @@ type Turn = {
   model_response?: string
   verdict?: string
   reason?: string
+  elapsed_ms?: number | null
+  response_length?: number | null
 }
 
 // keyed as `${category}::${model}`
@@ -108,6 +110,8 @@ export default function RunPage() {
               model_response: event.model_response,
               verdict: event.verdict,
               reason: event.reason,
+              elapsed_ms: event.elapsed_ms,
+              response_length: event.response_length,
             }
             return { ...prev, [key]: updated }
           }
@@ -118,6 +122,8 @@ export default function RunPage() {
               model_response: event.model_response,
               verdict: event.verdict,
               reason: event.reason,
+              elapsed_ms: event.elapsed_ms,
+              response_length: event.response_length,
             }],
           }
         })
@@ -210,11 +216,20 @@ export default function RunPage() {
                         )}
 
                         {turn.verdict && (
-                          <div className="flex items-center gap-2 pt-1 border-t border-zinc-800">
-                            <span className={`font-mono font-bold ${VERDICT_COLORS[turn.verdict] ?? 'text-zinc-400'}`}>
-                              {turn.verdict}
-                            </span>
-                            <span className="text-zinc-500">{turn.reason}</span>
+                          <div className="flex items-start justify-between gap-2 pt-1 border-t border-zinc-800">
+                            <div className="flex flex-col gap-0.5">
+                              <span className={`font-mono font-bold ${VERDICT_COLORS[turn.verdict] ?? 'text-zinc-400'}`}>
+                                {turn.verdict}
+                              </span>
+                              <span className="text-zinc-500">{turn.reason}</span>
+                            </div>
+                            {(turn.elapsed_ms != null || turn.response_length != null) && (
+                              <span className="text-zinc-700 font-mono text-[10px] shrink-0 text-right">
+                                {turn.elapsed_ms != null && <>{turn.elapsed_ms}ms</>}
+                                {turn.elapsed_ms != null && turn.response_length != null && ' · '}
+                                {turn.response_length != null && <>{turn.response_length}c</>}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>
