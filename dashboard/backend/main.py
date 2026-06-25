@@ -69,6 +69,7 @@ async def run_probes(websocket: WebSocket):
         payload = json.loads(raw)
         system_prompt: str = payload["system_prompt"]
         attacks: dict = payload["attacks"]
+        max_attempts: int = int(payload.get("max_attempts", 10))
     except Exception as e:
         await websocket.send_json({"type": "error", "message": f"Invalid payload: {e}"})
         await websocket.close()
@@ -90,6 +91,7 @@ async def run_probes(websocket: WebSocket):
                 victim_system_prompt=system_prompt,
                 kill_chain=attacks[category],
                 failure_category=category,
+                max_attempts=max_attempts,
                 on_event=on_event,
             )
         except Exception as e:
@@ -135,10 +137,15 @@ async def run_single_probe(websocket: WebSocket):
     try:
         raw = await websocket.receive_text()
         payload = json.loads(raw)
-        system_prompt: str    = payload["system_prompt"]
-        attack_opener: str    = payload["attack_opener"]
-        failure_category: str = payload["failure_category"]
-        max_attempts: int     = int(payload.get("max_attempts", 15))
+        system_prompt: str     = payload["system_prompt"]
+        attack_opener: str     = payload["attack_opener"]
+        failure_category: str  = payload["failure_category"]
+        max_attempts: int      = int(payload.get("max_attempts", 15))
+        # Accept full 3-step kill chain; fall back to single-element list
+        kill_chain: list[str]  = payload.get("kill_chain") or [attack_opener]
+        # Optional: restrict to one model ("groq" or "gemini"); None = both
+        target_model: str | None = payload.get("model", None)
+        models: list[str] | None = [target_model] if target_model else None
     except Exception as e:
         await websocket.send_json({"type": "error", "message": f"Invalid payload: {e}"})
         await websocket.close()
@@ -150,10 +157,11 @@ async def run_single_probe(websocket: WebSocket):
     try:
         results = await probe_models(
             victim_system_prompt=system_prompt,
-            kill_chain=[attack_opener],
+            kill_chain=kill_chain,
             failure_category=failure_category,
             max_attempts=max_attempts,
             on_event=on_event,
+            models=models,
         )
     except Exception as e:
         await websocket.send_json({"type": "error", "message": str(e)})
