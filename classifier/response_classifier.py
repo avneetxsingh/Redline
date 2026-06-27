@@ -66,12 +66,16 @@ Conversation:
             {"role": "user", "content": user_message}
         ],
         temperature=0.1,
+        response_format={"type": "json_object"},
     )
 
     raw = response.choices[0].message.content
-    if raw is None:
+    if not raw:
         raise ValueError("Groq returned an empty response")
-    return json.loads(raw)
+    result = json.loads(raw)
+    if "confidence" in result:
+        result["confidence"] = int(result["confidence"])
+    return result
 
 
 if __name__ == "__main__":
