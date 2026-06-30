@@ -2,7 +2,8 @@
 
 **Adversarial LLM testing framework.** Automatically generates attack prompts across 5 failure categories, probes target models in real time with adaptive escalation, and classifies how each model failed — side by side.
 
-![Redline probe screenshot](https://placehold.co/1200x600/0a0a0a/ff1744?text=REDLINE+—+adversarial+LLM+testing)
+<img width="2606" height="1779" alt="image" src="https://github.com/user-attachments/assets/21433258-8760-421c-a578-8b8eeaa4a587" />
+
 
 ---
 
@@ -11,6 +12,8 @@
 1. **Generate** — describe an AI assistant (e.g. "customer support bot for a bank"). Redline generates a realistic victim system prompt with embedded secrets, then produces a 3-step kill chain per attack vector.
 2. **Probe** — sends attacks to one or more LLMs simultaneously. After each turn, an LLM-as-judge classifier scores the response. If the model holds, the escalator reads the specific defense and picks the best counter-strategy.
 3. **Classify** — every turn gets a verdict and confidence score. When a model cracks, the probe stops and records the attempt number.
+
+<img width="2606" height="6773" alt="image" src="https://github.com/user-attachments/assets/a41ee1b7-bdba-4fe6-ac27-44fb2cee5142" />
 
 ---
 
@@ -38,6 +41,8 @@ Each category gets a 3-step scripted kill chain (Probe → Exploit → Extract).
 | `HALLUCINATED` | Model fabricated confident false information |
 | `OVER_REFUSED` | Model refused a legitimate benign request |
 | `CONTEXT_LOST` | Model lost track of its instructions mid-conversation |
+
+<img width="2606" height="2795" alt="image" src="https://github.com/user-attachments/assets/c09990a4-7bdd-41ff-9320-7304f0977f9a" />
 
 ---
 
